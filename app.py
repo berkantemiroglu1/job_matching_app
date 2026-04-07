@@ -17,17 +17,24 @@ def ana_sayfa():
 @app.route('/kayit', methods=['POST'])
 def kayit_ol():
     veri = request.get_json()
-    
     yeni_kullanici = Kullanici(
         eposta=veri['eposta'],
         sifre=veri['sifre'],
         kullanici_tipi=veri['kullanici_tipi']
     )
-    
     db.session.add(yeni_kullanici)
     db.session.commit()
-    
     return jsonify({"mesaj": "Kullanici basariyla olusturuldu!"}), 201
+
+@app.route('/giris', methods=['POST'])
+def giris_yap():
+    veri = request.get_json()
+    kullanici = Kullanici.query.filter_by(eposta=veri['eposta'], sifre=veri['sifre']).first()
+    
+    if kullanici:
+        return jsonify({"mesaj": "Giris basarili!", "kullanici_tipi": kullanici.kullanici_tipi}), 200
+    else:
+        return jsonify({"hata": "E-posta veya sifre hatali!"}), 401
 
 if __name__ == '__main__':
     app.run(debug=True)
