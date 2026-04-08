@@ -1,0 +1,18 @@
+pytest : & "C:/Users/berka/AppData/Local/Microsoft/WindowsApps/python3.11.exe" -m pytest --cov=. test_app.py
+
+1.KAYIT (POST - http://127.0.0.1:5000/kayit):
+{
+  "eposta": "demo@test.com", 
+  "sifre": "123", 
+  "kullanici_tipi": "aday"
+}
+
+2.ILANLAR (GET - http://127.0.0.1:5000/ilanlar): 
+
+
+3. BASVURU (POST - http://127.0.0.1:5000/basvuru-yap):
+{
+  "ilan_id": 1, 
+  "aday_id": 1, 
+  "cv_metni": "Demo basvurusu."
+}
