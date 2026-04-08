@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from models import db, Kullanici, IsIlani
+from models import db, Kullanici, IsIlani, Basvuru
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///veritabani.db'
@@ -62,6 +62,19 @@ def ilanlari_getir():
             "isveren_id": ilan.isveren_id
         })
     return jsonify(liste), 200
+
+@app.route('/basvuru-yap', methods=['POST'])
+def basvuru_yap():
+    veri = request.get_json()
+    yeni_basvuru = Basvuru(
+        ilan_id=veri['ilan_id'],
+        aday_id=veri['aday_id'],
+        cv_metni=veri['cv_metni'],
+        yapay_zeka_puani=veri.get('yapay_zeka_puani', None) 
+    )
+    db.session.add(yeni_basvuru)
+    db.session.commit()
+    return jsonify({"mesaj": "Basvuru basariyla alindi!"}), 201
 
 if __name__ == '__main__':
     app.run(debug=True)
