@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 import services
 
+# Blueprint tanımlaması
 api_bp = Blueprint('api', __name__)
 
 @api_bp.route('/', methods=['GET'])
@@ -10,6 +11,7 @@ def ana_sayfa():
 @api_bp.route('/kayit', methods=['POST'])
 def kayit_ol():
     veri = request.get_json()
+    # Postman'den gelen JSON içindeki 'eposta', 'sifre' ve 'kullanici_tipi' aranır
     sonuc = services.kullanici_kayit_et(veri['eposta'], veri['sifre'], veri['kullanici_tipi'])
     if sonuc['basari']:
         return jsonify({"mesaj": sonuc['mesaj']}), 201
@@ -39,6 +41,7 @@ def ilanlari_getir():
 @api_bp.route('/basvuru-yap', methods=['POST'])
 def basvuru_yap():
     veri = request.get_json()
+    # cv_metni olarak güncellendi
     sonuc = services.basvuru_olustur(veri['ilan_id'], veri['aday_id'], veri['cv_metni'], veri.get('yapay_zeka_puani'))
     if sonuc['basari']:
         return jsonify({"mesaj": sonuc['mesaj']}), 201
