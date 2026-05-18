@@ -22,7 +22,8 @@ jobs:
     - name: Gerekli Kutuphaneleri Yukle
       run: |
         python -m pip install --upgrade pip
-        pip install flask flask-sqlalchemy pytest pytest-cov
+        pip install -r requirements.txt
+        pip install pytest pytest-cov
 
     - name: Otomatik Testleri Calistir
       run: |
