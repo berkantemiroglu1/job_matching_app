@@ -8,8 +8,6 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     db.init_app(app)
-
-    # Rotaları (Presentation katmanı) uygulamaya bağla
     app.register_blueprint(api_bp)
 
     with app.app_context():

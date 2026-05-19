@@ -1,7 +1,6 @@
 from flask import Blueprint, request, jsonify
 import services
 
-# Blueprint tanımlaması
 api_bp = Blueprint('api', __name__)
 
 @api_bp.route('/', methods=['GET'])
@@ -11,7 +10,6 @@ def ana_sayfa():
 @api_bp.route('/kayit', methods=['POST'])
 def kayit_ol():
     veri = request.get_json()
-    # Postman'den gelen JSON içindeki 'eposta', 'sifre' ve 'kullanici_tipi' aranır
     sonuc = services.kullanici_kayit_et(veri['eposta'], veri['sifre'], veri['kullanici_tipi'])
     if sonuc['basari']:
         return jsonify({"mesaj": sonuc['mesaj']}), 201
@@ -41,8 +39,17 @@ def ilanlari_getir():
 @api_bp.route('/basvuru-yap', methods=['POST'])
 def basvuru_yap():
     veri = request.get_json()
-    # cv_metni olarak güncellendi
     sonuc = services.basvuru_olustur(veri['ilan_id'], veri['aday_id'], veri['cv_metni'], veri.get('yapay_zeka_puani'))
     if sonuc['basari']:
         return jsonify({"mesaj": sonuc['mesaj']}), 201
     return jsonify({"hata": sonuc['hata']}), 400
+
+@api_bp.route('/ai-degerlendirme', methods=['POST'])
+def ai_degerlendirme():
+    veri = request.get_json()
+    github_adi = veri.get('github_kullanici_adi')
+    
+    github_veri = services.github_bilgilerini_getir(github_adi)
+    ai_sonuc = services.ai_cv_degerlendir(veri['cv_metni'], veri['ilan_metni'], github_veri)
+    
+    return jsonify({"degerlendirme": ai_sonuc}), 200
