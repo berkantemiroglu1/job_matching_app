@@ -65,3 +65,22 @@ def ai_cv_degerlendir(cv_metni, ilan_metni):
     
     # cevabi don
     return cevap.json()["response"]
+
+def github_repo_sayisi_getir(github_kullanici_adi):
+    try:
+        # api adresi
+        url = f"https://api.github.com/users/{github_kullanici_adi}"
+        
+        # istek basligi
+        headers = {"User-Agent": "JobMatchingApp"}
+        
+        # istek at
+        cevap = requests.get(url, headers=headers)
+        
+        if cevap.status_code == 200:
+            veri = cevap.json()
+            # repo sayisi
+            return veri.get("public_repos", 0)
+        return 0
+    except Exception:
+        return 0
