@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="32dp"
+    android:background="#F3F4F6">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="AI Job Match"
+        android:textSize="36sp"
+        android:textStyle="bold"
+        android:textColor="#111827"
+        android:layout_marginBottom="40dp"/>
+
+    <EditText
+        android:id="@+id/editEposta"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:hint="E-posta Adresiniz"
+        android:inputType="textEmailAddress"
+        android:background="#FFFFFF"
+        android:padding="15dp"
+        android:elevation="2dp"
+        android:layout_marginBottom="16dp"/>
+
+    <EditText
+        android:id="@+id/editSifre"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:hint="Şifreniz"
+        android:inputType="textPassword"
+        android:background="#FFFFFF"
+        android:padding="15dp"
+        android:elevation="2dp"
+        android:layout_marginBottom="24dp"/>
+
+    <Button
+        android:id="@+id/btnGirisYap"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="GİRİŞ YAP"
+        android:textSize="16sp"
+        android:backgroundTint="#FF4D24"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/textMesaj"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:textSize="14sp"
+        android:textColor="#FF3B57"
+        android:textAlignment="center"
+        android:text=""/>
+
+    <TextView
+        android:id="@+id/textKayitSayfasinaGit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Hesabınız yok mu? Hemen Kayıt Olun"
+        android:textSize="15sp"
+        android:textColor="#FF4D24"
+        android:textStyle="bold"
+        android:padding="10dp"/>
+    <TextView
+        android:id="@+id/textSifremiUnuttum"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Şifremi Unuttum"
+        android:textColor="#3B82F6"
+        android:textSize="14sp"
+        android:layout_gravity="center"
+        android:layout_marginTop="8dp"
+        android:padding="8dp"/>
+
+</LinearLayout>

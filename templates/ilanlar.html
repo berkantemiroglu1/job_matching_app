@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İş İlanları</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .arama-kutusu {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 16px;
+            border: 2px solid #EFEFEF;
+            border-radius: 25px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            outline: none;
+            transition: all 0.3s;
+        }
+        .arama-kutusu:focus {
+            border-color: #FF3B57;
+            box-shadow: 0 0 10px rgba(255, 59, 87, 0.1);
+        }
+        .filtre-alani {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            font-size: 15px;
+            color: #555;
+            font-weight: bold;
+        }
+        .filtre-alani input {
+            margin-right: 10px;
+            transform: scale(1.2);
+            cursor: pointer;
+        }
+        .ilan-karti {
+            background-color: #EFEFEF;
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .ilan-baslik {
+            font-size: 20px;
+            font-weight: bold;
+            color: #111827;
+            margin-bottom: 10px;
+        }
+        .ilan-detay {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 15px;
+        }
+        .basvuru-kutusu {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #ccc;
+        }
+        .dosya-yukleme {
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            border: 1px dashed #ccc;
+        }
+        .basvuru-yapildi-kutu {
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 15px;
+            margin-top: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="#" class="navbar-brand">AI Job Match</a>
+        <div class="navbar-menu">
+            <a href="/ilanlar-ekrani" style="color: #FF4D24;">İlanlar</a>
+            <a href="/ilan-ver-ekrani" id="menu-ilan-ver" style="display: none;">İlan Ver</a>
+            <a href="/basvurular-ekrani" id="menu-basvurular" style="display: none;">Başvurular</a>
+            <a href="/giris-ekrani" style="color: #FF3B57;" onclick="localStorage.clear();">Çıkış Yap</a>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width: 600px;">
+        <h2>Aktif İş İlanları</h2>
+        
+        <input type="text" id="aramaKutusu" class="arama-kutusu" placeholder="Pozisyon, yetenek veya şirket ara...">
+        
+        <label class="filtre-alani" id="gizleKutusuEtiketi">
+            <input type="checkbox" id="gizleKutusu"> Başvurduğum ilanları gizle
+        </label>
+
+        <div id="ilanListesi"></div>
+        <div id="mesajKutusu" class="mesaj"></div>
+    </div>
+
+    <script>
+        const aktifRol = localStorage.getItem('aktifRol');
+        const aktifId = localStorage.getItem('aktifId');
+        let tumIlanlarData = []; 
+
+        if (aktifRol === 'isveren') {
+            document.getElementById('menu-ilan-ver').style.display = 'inline';
+            document.getElementById('menu-basvurular').style.display = 'inline';
+            document.getElementById('gizleKutusuEtiketi').style.display = 'none'; 
+        }
+
+        const aramaKutusu = document.getElementById('aramaKutusu');
+        const gizleKutusu = document.getElementById('gizleKutusu');
+
+        aramaKutusu.addEventListener('input', listeyiFiltrele);
+        gizleKutusu.addEventListener('change', listeyiFiltrele);
+
+        function listeyiFiltrele() {
+            const arananKelime = aramaKutusu.value.toLowerCase();
+            const gizleAktif = gizleKutusu.checked;
+            const ilanKartlari = document.getElementsByClassName('ilan-karti');
+
+            Array.from(ilanKartlari).forEach((kart, index) => {
+                const ilan = tumIlanlarData[index]; 
+                const metin = kart.innerText.toLowerCase();
+                let goster = true;
+
+                if (gizleAktif && ilan && ilan.basvuruldu) {
+                    goster = false;
+                }
+
+                if (goster && !metin.includes(arananKelime)) {
+                    goster = false;
+                }
+
+                kart.style.display = goster ? 'block' : 'none';
+            });
+        }
+
+        async function ilanlariGetir() {
+            const ilanListesi = document.getElementById('ilanListesi');
+            const mesajKutusu = document.getElementById('mesajKutusu');
+            ilanListesi.innerHTML = '<p>İlanlar yükleniyor...</p>';
+
+            try {
+                const url = aktifId && aktifRol === 'aday' ? `/ilanlar?kullanici_id=${aktifId}` : '/ilanlar';
+                const cevap = await fetch(url);
+                const ilanlar = await cevap.json();
+                
+                tumIlanlarData = ilanlar; 
+
+                if (cevap.ok && ilanlar.length > 0) {
+                    ilanListesi.innerHTML = '';
+                    ilanlar.forEach((ilan, index) => {
+                        const kart = document.createElement('div');
+                        kart.className = 'ilan-karti';
+                        kart.dataset.index = index; 
+                        
+                        let altKisimHTML = '';
+                        
+                        if (aktifRol === 'isveren') {
+                            altKisimHTML = '<p style="color: #777; font-size: 13px; font-style: italic;">İşveren hesabı ile başvuru yapılamaz.</p>';
+                        } else if (ilan.basvuruldu) {
+                            let renk = '#2ecc71';
+                            if (ilan.basvuru_puani < 50) renk = '#FF3B57';
+                            else if (ilan.basvuru_puani < 75) renk = '#f39c12';
+
+                            altKisimHTML = `
+                                <div class="basvuru-yapildi-kutu" style="border-left: 4px solid ${renk};">
+                                    <strong style="color: ${renk}; font-size: 16px;">✓ Bu ilana başvurdunuz. AI Puanınız: ${ilan.basvuru_puani}</strong>
+                                    <p style="margin-top: 10px; font-size: 14px; color: #111827; white-space: pre-wrap;">${ilan.ai_aciklama}</p>
+                                </div>
+                            `;
+                        } else {
+                            altKisimHTML = `
+                                <button class="btn" onclick="basvuruKutusuGoster(${ilan.id})">Başvuru Yap</button>
+                                <div id="basvuru-${ilan.id}" class="basvuru-kutusu">
+                                    <div class="dosya-yukleme">
+                                        <label style="font-weight: bold; font-size: 14px; display: block; margin-bottom: 10px;">CV'nizi Yükleyin (Sadece PDF):</label>
+                                        <input type="file" id="cv-dosya-${ilan.id}" accept=".pdf" style="margin: 0; padding: 0;">
+                                    </div>
+                                    <input type="hidden" id="ilan-metni-${ilan.id}" value="${ilan.aciklama} ${ilan.kriterler}">
+                                    <button class="btn" style="background-color: #2ecc71;" onclick="basvuruGonder(${ilan.id})">Başvuruyu Tamamla</button>
+                                    <div id="sonuc-${ilan.id}" class="mesaj" style="margin-top: 15px; text-align: left;"></div>
+                                </div>
+                            `;
+                        }
+
+                        kart.innerHTML = `
+                            <div class="ilan-baslik">${ilan.baslik}</div>
+                            <div class="ilan-detay"><strong>Açıklama:</strong> ${ilan.aciklama}</div>
+                            <div class="ilan-detay"><strong>Kriterler:</strong> ${ilan.kriterler}</div>
+                            ${altKisimHTML}
+                        `;
+                        ilanListesi.appendChild(kart);
+                    });
+                } else {
+                    ilanListesi.innerHTML = '<p>Şu an aktif ilan bulunmuyor.</p>';
+                }
+            } catch (hata) {
+                ilanListesi.innerHTML = '';
+                mesajKutusu.style.color = '#FF3B57';
+                mesajKutusu.innerText = 'İlanlar yüklenirken bir hata oluştu.';
+            }
+        }
+
+        function basvuruKutusuGoster(ilanId) {
+            const kutu = document.getElementById(`basvuru-${ilanId}`);
+            kutu.style.display = kutu.style.display === 'block' ? 'none' : 'block';
+        }
+
+        async function basvuruGonder(ilanId) {
+            const dosyaInput = document.getElementById(`cv-dosya-${ilanId}`);
+            const ilanMetni = document.getElementById(`ilan-metni-${ilanId}`).value;
+            const sonucKutusu = document.getElementById(`sonuc-${ilanId}`);
+
+            if (!aktifId) {
+                sonucKutusu.style.color = '#FF3B57';
+                sonucKutusu.innerText = 'Oturum hatası. Lütfen tekrar giriş yapın.';
+                return;
+            }
+
+            if (dosyaInput.files.length === 0) {
+                sonucKutusu.style.color = '#FF3B57';
+                sonucKutusu.innerText = 'Lütfen PDF formatında bir CV seçiniz.';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('cv_dosyasi', dosyaInput.files[0]);
+            formData.append('ilan_id', ilanId);
+            formData.append('aday_id', aktifId);
+            formData.append('ilan_metni', ilanMetni);
+
+            sonucKutusu.style.color = '#111827';
+            sonucKutusu.innerText = 'CV Yükleniyor ve Yapay Zeka Tarafından Değerlendiriliyor (10-15 saniye sürebilir)...';
+
+            try {
+                const cevap = await fetch('/basvuru-yap', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const sonuc = await cevap.json();
+
+                if (cevap.ok) {
+                    alert('Başvurunuz başarıyla alındı ve değerlendirildi!');
+                    ilanlariGetir(); 
+                } else {
+                    sonucKutusu.style.color = '#FF3B57';
+                    sonucKutusu.innerText = sonuc.hata;
+                }
+            } catch (hata) {
+                sonucKutusu.style.color = '#FF3B57';
+                sonucKutusu.innerText = 'Bağlantı hatası oluştu.';
+            }
+        }
+
+        window.onload = ilanlariGetir;
+    </script>
+</body>
+</html>

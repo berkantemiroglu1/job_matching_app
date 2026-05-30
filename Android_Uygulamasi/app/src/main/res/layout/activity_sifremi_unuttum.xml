@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="#F3F4F6"
+    android:gravity="center">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Şifre Yenileme"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:textColor="#111827"
+        android:textAlignment="center"
+        android:layout_marginBottom="32dp"/>
+
+    <EditText
+        android:id="@+id/editSifreSifirlaEposta"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Kayıtlı E-posta Adresiniz"
+        android:inputType="textEmailAddress"
+        android:background="#FFFFFF"
+        android:padding="14dp"
+        android:layout_marginBottom="16dp"/>
+
+    <EditText
+        android:id="@+id/editSifreSifirlaYeniSifre"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Yeni Şifreniz"
+        android:inputType="textPassword"
+        android:background="#FFFFFF"
+        android:padding="14dp"
+        android:layout_marginBottom="24dp"/>
+
+    <Button
+        android:id="@+id/btnSifremiYenile"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Şifremi Güncelle"
+        android:backgroundTint="#FF4D24"
+        android:textColor="#FFFFFF"
+        android:padding="14dp"
+        android:textSize="16sp"/>
+</LinearLayout>

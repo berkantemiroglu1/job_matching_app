@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yeni İş İlanı Yayınla</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="#" class="navbar-brand">AI Job Match</a>
+        <div class="navbar-menu">
+            <a href="/ilanlar-ekrani">İlanlar</a>
+            <a href="/ilan-ver-ekrani" id="menu-ilan-ver" style="color: #FF4D24; display: none;">İlan Ver</a>
+            <a href="/basvurular-ekrani" id="menu-basvurular" style="display: none;">Başvurular</a>
+            <a href="/giris-ekrani" style="color: #FF3B57;" onclick="localStorage.clear();">Çıkış Yap</a>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width: 500px;">
+        <h2>Yeni İş İlanı Yayınla</h2>
+        <form id="ilanFormu">
+            <input type="text" id="baslik" placeholder="İlan Başlığı (Örn: Python Geliştirici)" required>
+            <textarea id="aciklama" placeholder="Şirket ve İş Açıklaması" rows="4" required></textarea>
+            <textarea id="kriterler" placeholder="Aranan Kriterler (Örn: Flask, SQL, Git bilmek)" rows="4" required></textarea>
+            <button type="submit" class="btn">İlanı Yayınla</button>
+        </form>
+        <div id="mesajKutusu" class="mesaj"></div>
+    </div>
+
+    <script>
+        if (localStorage.getItem('aktifRol') === 'isveren') {
+            document.getElementById('menu-ilan-ver').style.display = 'inline';
+            document.getElementById('menu-basvurular').style.display = 'inline';
+        }
+
+        document.getElementById('ilanFormu').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const baslik = document.getElementById('baslik').value;
+            const aciklama = document.getElementById('aciklama').value;
+            const kriterler = document.getElementById('kriterler').value;
+            const isveren_id = parseInt(localStorage.getItem('aktifId'));
+            const mesajKutusu = document.getElementById('mesajKutusu');
+
+            if (!isveren_id) {
+                mesajKutusu.style.color = '#FF3B57';
+                mesajKutusu.innerText = 'Oturum hatası. Lütfen tekrar giriş yapın.';
+                return;
+            }
+
+            try {
+                const cevap = await fetch('/ilan-ver', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ baslik, aciklama, kriterler, isveren_id })
+                });
+                const sonuc = await cevap.json();
+                
+                if (cevap.ok) {
+                    mesajKutusu.style.color = '#2ecc71';
+                    mesajKutusu.innerText = sonuc.mesaj;
+                    document.getElementById('ilanFormu').reset();
+                } else {
+                    mesajKutusu.style.color = '#FF3B57';
+                    mesajKutusu.innerText = sonuc.hata;
+                }
+            } catch (hata) {
+                mesajKutusu.style.color = '#FF3B57';
+                mesajKutusu.innerText = 'Bağlantı hatası oluştu.';
+            }
+        });
+    </script>
+</body>
+</html>

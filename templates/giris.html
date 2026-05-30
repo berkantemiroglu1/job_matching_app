@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giriş Yap</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Giriş Yap</h2>
+        <form id="girisFormu">
+            <input type="email" id="eposta" placeholder="E-posta Adresi" required>
+            <input type="password" id="sifre" placeholder="Şifre" required>
+            
+            <div class="robot-kontrol">
+                <span id="matematikSoru" style="font-weight: bold; font-size: 16px;"></span>
+                <input type="text" id="matematikCevap" placeholder="Cevap" required>
+            </div>
+
+            <button type="submit" class="btn">Giriş Yap</button>
+            
+            <div class="alt-linkler">
+                <a href="/sifremi-unuttum-ekrani">Şifremi Unuttum</a>
+                <a href="/kayit-ekrani">Hesabın yok mu? Kayıt Ol</a>
+            </div>
+        </form>
+        <div id="mesajKutusu" class="mesaj"></div>
+    </div>
+
+    <script>
+        let dogruCevap = 0;
+
+        function captchaOlustur() {
+            const sayi1 = Math.floor(Math.random() * 10) + 1;
+            const sayi2 = Math.floor(Math.random() * 10) + 1;
+            dogruCevap = sayi1 + sayi2;
+            document.getElementById('matematikSoru').innerText = sayi1 + " + " + sayi2 + " = ";
+            document.getElementById('matematikCevap').value = '';
+        }
+
+        window.onload = captchaOlustur;
+
+        document.getElementById('girisFormu').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const eposta = document.getElementById('eposta').value;
+            const sifre = document.getElementById('sifre').value;
+            const mesajKutusu = document.getElementById('mesajKutusu');
+            const kullaniciCevap = parseInt(document.getElementById('matematikCevap').value);
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(eposta)) {
+                mesajKutusu.style.color = '#FF3B57';
+                mesajKutusu.innerText = 'Geçerli bir e-posta adresi giriniz.';
+                return;
+            }
+
+            if (kullaniciCevap !== dogruCevap) {
+                mesajKutusu.style.color = '#FF3B57';
+                mesajKutusu.innerText = 'Matematik işlemini yanlış çözdünüz.';
+                captchaOlustur();
+                return;
+            }
+
+            try {
+                const cevap = await fetch('/giris', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ eposta, sifre })
+                });
+                const sonuc = await cevap.json();
+                
+                if (cevap.ok) {
+                    mesajKutusu.style.color = '#2ecc71';
+                    mesajKutusu.innerText = 'Giriş başarılı! Yönlendiriliyorsunuz...';
+                    
+                    localStorage.setItem('aktifRol', sonuc.kullanici_tipi);
+                    localStorage.setItem('aktifId', sonuc.kullanici_id);
+                    
+                    setTimeout(() => {
+                        if (sonuc.kullanici_tipi === 'aday') {
+                            window.location.href = '/ilanlar-ekrani';
+                        } else {
+                            window.location.href = '/ilan-ver-ekrani';
+                        }
+                    }, 1500);
+                } else {
+                    mesajKutusu.style.color = '#FF3B57';
+                    mesajKutusu.innerText = sonuc.hata;
+                    captchaOlustur();
+                }
+            } catch (hata) {
+                mesajKutusu.style.color = '#FF3B57';
+                mesajKutusu.innerText = 'Bağlantı hatası oluştu.';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kayıt Ol</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Kayıt Ol</h2>
+        <form id="kayitFormu">
+            <input type="email" id="eposta" placeholder="E-posta Adresi" required>
+            <input type="password" id="sifre" placeholder="Şifre" required>
+            <select id="kullanici_tipi">
+                <option value="aday">Aday (İş Arayan)</option>
+                <option value="isveren">İşveren (Şirket)</option>
+            </select>
+            
+            <div class="robot-kontrol">
+                <span id="matematikSoru" style="font-weight: bold; font-size: 16px;"></span>
+                <input type="text" id="matematikCevap" placeholder="Cevap" required>
+            </div>
+
+            <button type="submit" class="btn">Kayıt Ol</button>
+
+            <div class="alt-linkler">
+                <a href="/giris-ekrani">Zaten hesabın var mı? Giriş Yap</a>
+            </div>
+        </form>
+        <div id="mesajKutusu" class="mesaj"></div>
+    </div>
+
+    <script>
+        let dogruCevap = 0;
+
+        function captchaOlustur() {
+            const sayi1 = Math.floor(Math.random() * 10) + 1;
+            const sayi2 = Math.floor(Math.random() * 10) + 1;
+            dogruCevap = sayi1 + sayi2;
+            document.getElementById('matematikSoru').innerText = sayi1 + " + " + sayi2 + " = ";
+            document.getElementById('matematikCevap').value = '';
+        }
+
+        window.onload = captchaOlustur;
+
+        document.getElementById('kayitFormu').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const eposta = document.getElementById('eposta').value;
+            const sifre = document.getElementById('sifre').value;
+            const kullanici_tipi = document.getElementById('kullanici_tipi').value;
+            const mesajKutusu = document.getElementById('mesajKutusu');
+            const kullaniciCevap = parseInt(document.getElementById('matematikCevap').value);
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(eposta)) {
+                mesajKutusu.style.color = '#FF3B57';
+                mesajKutusu.innerText = 'Geçerli bir e-posta adresi giriniz.';
+                return;
+            }
+
+            if (kullaniciCevap !== dogruCevap) {
+                mesajKutusu.style.color = '#FF3B57';
+                mesajKutusu.innerText = 'Matematik işlemini yanlış çözdünüz.';
+                captchaOlustur();
+                return;
+            }
+
+            try {
+                const cevap = await fetch('/kayit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ eposta, sifre, kullanici_tipi })
+                });
+                const sonuc = await cevap.json();
+                
+                if (cevap.ok) {
+                    mesajKutusu.style.color = '#2ecc71';
+                    mesajKutusu.innerText = sonuc.mesaj;
+                    document.getElementById('kayitFormu').reset();
+                    captchaOlustur();
+                } else {
+                    mesajKutusu.style.color = '#FF3B57';
+                    mesajKutusu.innerText = sonuc.hata;
+                    captchaOlustur();
+                }
+            } catch (hata) {
+                mesajKutusu.style.color = '#FF3B57';
+                mesajKutusu.innerText = 'Bağlantı hatası oluştu.';
+            }
+        });
+    </script>
+</body>
+</html>

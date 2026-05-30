@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İşveren Paneli - Başvurular</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .ilan-yonetim-karti {
+            background-color: #ffffff;
+            border: 2px solid #EFEFEF;
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            text-align: left;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        }
+        .ilan-baslik-alani {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #EFEFEF;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+        .basvuru-listesi {
+            margin-top: 15px;
+        }
+        .basvuru-karti {
+            background-color: #F3F4F6;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+        .ai-puan {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .ai-geribildirim {
+            font-size: 14px;
+            color: #111827;
+            white-space: pre-wrap;
+            margin-bottom: 15px;
+            background: #ffffff;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .btn-kucuk {
+            padding: 8px 15px;
+            font-size: 13px;
+            border-radius: 15px;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-sil {
+            background-color: #FF3B57;
+            color: white;
+        }
+        .btn-indir {
+            background-color: #111827;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            color: white;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+        .btn-indir:hover {
+            background-color: #FF4D24;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="#" class="navbar-brand">AI Job Match</a>
+        <div class="navbar-menu">
+            <a href="/ilanlar-ekrani">İlanlar</a>
+            <a href="/ilan-ver-ekrani" id="menu-ilan-ver">İlan Ver</a>
+            <a href="/basvurular-ekrani" id="menu-basvurular" style="color: #FF4D24;">Başvurular</a>
+            <a href="/giris-ekrani" style="color: #FF3B57;" onclick="localStorage.clear();">Çıkış Yap</a>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width: 700px;">
+        <h2>İlanlarım ve Gelen Başvurular</h2>
+        <div id="isverenIlanListesi"></div>
+        <div id="mesajKutusu" class="mesaj"></div>
+    </div>
+
+    <script>
+        if (localStorage.getItem('aktifRol') !== 'isveren') {
+            window.location.href = '/ilanlar-ekrani';
+        }
+
+        async function isverenIlanlariniGetir() {
+            const ilanListesi = document.getElementById('isverenIlanListesi');
+            const mesajKutusu = document.getElementById('mesajKutusu');
+            const isverenId = localStorage.getItem('aktifId');
+            
+            ilanListesi.innerHTML = '<p>Verileriniz yükleniyor...</p>';
+
+            if (!isverenId) {
+                mesajKutusu.style.color = '#FF3B57';
+                mesajKutusu.innerText = 'Oturum hatası. Lütfen tekrar giriş yapın.';
+                return;
+            }
+
+            try {
+                const cevap = await fetch(`/isveren-ilanlari/${isverenId}`);
+                const ilanlar = await cevap.json();
+
+                if (cevap.ok && ilanlar.length > 0) {
+                    ilanListesi.innerHTML = '';
+                    ilanlar.forEach(ilan => {
+                        const kart = document.createElement('div');
+                        kart.className = 'ilan-yonetim-karti';
+                        
+                        let basvurularHTML = '';
+                        if (ilan.basvurular && ilan.basvurular.length > 0) {
+                            ilan.basvurular.forEach(b => {
+                                let renk = '#2ecc71';
+                                if (b.puan < 50) renk = '#FF3B57';
+                                else if (b.puan < 75) renk = '#f39c12';
+
+                                basvurularHTML += `
+                                    <div class="basvuru-karti" style="border-left: 5px solid ${renk};">
+                                        <div style="font-size: 14px; color: #555; margin-bottom: 5px;">Aday ID: ${b.aday_id} | Tarih: ${b.tarih}</div>
+                                        <div class="ai-puan" style="color: ${renk};">Yapay Zeka Eşleşme Puanı: ${b.puan}/100</div>
+                                        <div class="ai-geribildirim"><strong>AI Değerlendirmesi:</strong><br>${b.geribildirim}</div>
+                                        <div>
+                                            <a href="/uploads/${b.cv_dosya_yolu}" download class="btn-kucuk btn-indir">PDF CV İndir</a>
+                                            <button class="btn-kucuk btn-sil" onclick="basvuruSil(${b.id})">Başvuruyu Sil</button>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                        } else {
+                            basvurularHTML = '<p style="font-size: 14px; color: #777;">Henüz bu ilana başvuru yapılmadı.</p>';
+                        }
+
+                        kart.innerHTML = `
+                            <div class="ilan-baslik-alani">
+                                <div>
+                                    <div style="font-size: 20px; font-weight: bold; color: #111827;">${ilan.baslik}</div>
+                                    <div style="font-size: 13px; color: #777;">İlan Kodu: #${ilan.id}</div>
+                                </div>
+                                <button class="btn-kucuk btn-sil" onclick="ilanSil(${ilan.id})">İlanı Sil</button>
+                            </div>
+                            <div style="font-size: 14px; margin-bottom: 15px;"><strong>Aranan Kriterler:</strong> ${ilan.kriterler}</div>
+                            
+                            <h4 style="margin-bottom: 10px; color: #FF4D24;">Gelen Başvurular (${ilan.basvurular.length})</h4>
+                            <div class="basvuru-listesi">
+                                ${basvurularHTML}
+                            </div>
+                        `;
+                        ilanListesi.appendChild(kart);
+                    });
+                } else {
+                    ilanListesi.innerHTML = '<p>Henüz yayınladığınız bir ilan bulunmuyor.</p>';
+                }
+            } catch (hata) {
+                ilanListesi.innerHTML = '';
+                mesajKutusu.style.color = '#FF3B57';
+                mesajKutusu.innerText = 'İlanlar yüklenirken bağlantı hatası oluştu.';
+            }
+        }
+
+        async function ilanSil(ilanId) {
+            const isverenId = localStorage.getItem('aktifId');
+            if(confirm('Bu ilanı silmek istediğinize emin misiniz? Tüm başvurular da silinecektir!')) {
+                try {
+                    const cevap = await fetch('/ilan-sil', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ilan_id: ilanId, isveren_id: isverenId })
+                    });
+                    const sonuc = await cevap.json();
+                    
+                    if(cevap.ok) {
+                        isverenIlanlariniGetir();
+                    } else {
+                        alert(sonuc.hata);
+                    }
+                } catch(hata) {
+                    alert('Silme işlemi sırasında hata oluştu.');
+                }
+            }
+        }
+
+        async function basvuruSil(basvuruId) {
+            const isverenId = localStorage.getItem('aktifId');
+            if(confirm('Bu başvuruyu silmek istediğinize emin misiniz?')) {
+                try {
+                    const cevap = await fetch('/basvuru-sil', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ basvuru_id: basvuruId, isveren_id: parseInt(isverenId) })
+                    });
+                    const sonuc = await cevap.json();
+                    
+                    if(cevap.ok) {
+                        isverenIlanlariniGetir();
+                    } else {
+                        alert(sonuc.hata);
+                    }
+                } catch(hata) {
+                    alert('Silme işlemi sırasında hata oluştu.');
+                }
+            }
+        }
+
+        window.onload = isverenIlanlariniGetir;
+    </script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#F3F4F6">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Yeni İlan Oluştur"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="#111827"
+        android:layout_marginBottom="24dp"/>
+
+    <EditText
+        android:id="@+id/editIlanBaslik"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="İlan Başlığı (Örn: Frontend Developer)"
+        android:background="#FFFFFF"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp"/>
+
+    <EditText
+        android:id="@+id/editIlanAciklama"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:hint="İlan Açıklaması"
+        android:background="#FFFFFF"
+        android:padding="12dp"
+        android:gravity="top"
+        android:layout_marginBottom="16dp"/>
+
+    <EditText
+        android:id="@+id/editIlanKriterler"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:hint="Kriterler (Örn: HTML, CSS, React)"
+        android:background="#FFFFFF"
+        android:padding="12dp"
+        android:gravity="top"
+        android:layout_marginBottom="24dp"/>
+
+    <Button
+        android:id="@+id/btnIlanYayinla"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="İlanı Yayınla"
+        android:backgroundTint="#FF4D24"
+        android:textColor="#FFFFFF"
+        android:padding="12dp"
+        android:textSize="16sp"/>
+</LinearLayout>

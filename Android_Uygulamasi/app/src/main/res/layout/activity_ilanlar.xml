@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F3F4F6">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:background="#FFFFFF"
+        android:elevation="4dp"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Aktif İlanlar"
+            android:textSize="22sp"
+            android:textColor="#111827"
+            android:textStyle="bold"/>
+
+        <Button
+            android:id="@+id/btnCikisYap"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Çıkış"
+            android:backgroundTint="#FF3B57"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp"
+        android:background="#FFFFFF"
+        android:elevation="2dp"
+        android:layout_marginBottom="8dp">
+
+        <EditText
+            android:id="@+id/editArama"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="İlan, teknoloji veya pozisyon ara..."
+            android:background="#F3F4F6"
+            android:padding="10dp"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp"/>
+
+        <CheckBox
+            android:id="@+id/checkBasvurulanlariGizle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Başvurduğum ilanları gizle"
+            android:textColor="#555555"
+            android:textSize="14sp"
+            android:buttonTint="#FF4D24"/>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/textIlanlarMesaj"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="İlanlar yükleniyor..."
+        android:textAlignment="center"
+        android:padding="16dp"
+        android:textColor="#555555"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewIlanlar"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="8dp"
+        android:clipToPadding="false"/>
+
+    <LinearLayout
+        android:id="@+id/layoutAltMenu"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:background="#FFFFFF"
+        android:elevation="8dp">
+
+        <Button
+            android:id="@+id/btnMenuIlanlar"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="İlanlar"
+            android:background="?android:attr/selectableItemBackground"
+            android:textColor="#FF4D24"
+            android:textStyle="bold"/>
+
+        <Button
+            android:id="@+id/btnMenuEkstra1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Gelen Başvurular"
+            android:background="?android:attr/selectableItemBackground"
+            android:textColor="#555555"/>
+
+        <Button
+            android:id="@+id/btnMenuEkstra2"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="İlan Ver"
+            android:background="?android:attr/selectableItemBackground"
+            android:textColor="#555555"/>
+    </LinearLayout>
+</LinearLayout>

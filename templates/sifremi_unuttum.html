@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Şifremi Unuttum</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #F3F4F6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { background-color: white; padding: 32px; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { text-align: center; color: #111827; margin-bottom: 24px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #D1D5DB; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
+        button { width: 100%; padding: 12px; margin-top: 10px; background-color: #FF4D24; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        button:hover { background-color: #E03E1C; }
+        .mesaj { text-align: center; margin-top: 16px; font-weight: bold; font-size: 14px; }
+        .link { display: block; text-align: center; margin-top: 16px; color: #3B82F6; text-decoration: none; font-size: 14px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Şifre Yenileme</h2>
+    <input type="email" id="eposta" placeholder="Kayıtlı E-posta Adresiniz" required>
+    <input type="password" id="yeni_sifre" placeholder="Yeni Şifreniz" required>
+    <button onclick="sifreYenile()">Şifremi Güncelle</button>
+    <div id="sonucMesaji" class="mesaj"></div>
+    <a href="/giris-ekrani" class="link">Giriş Sayfasına Dön</a>
+</div>
+
+<script>
+    async function sifreYenile() {
+        const eposta = document.getElementById('eposta').value;
+        const yeni_sifre = document.getElementById('yeni_sifre').value;
+        const sonucMesaji = document.getElementById('sonucMesaji');
+
+        if(!eposta || !yeni_sifre) {
+            sonucMesaji.style.color = '#EF4444';
+            sonucMesaji.innerText = 'Lütfen tüm alanları doldurun.';
+            return;
+        }
+
+        sonucMesaji.style.color = '#111827';
+        sonucMesaji.innerText = 'İşlem yapılıyor...';
+
+        try {
+            const response = await fetch('/sifre-yenile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ eposta: eposta, yeni_sifre: yeni_sifre })
+            });
+
+            const data = await response.json();
+
+            if(response.ok) {
+                sonucMesaji.style.color = '#10B981';
+                sonucMesaji.innerText = data.mesaj;
+            } else {
+                sonucMesaji.style.color = '#EF4444';
+                sonucMesaji.innerText = data.hata || 'Bir hata oluştu.';
+            }
+        } catch (error) {
+            sonucMesaji.style.color = '#EF4444';
+            sonucMesaji.innerText = 'Bağlantı hatası.';
+        }
+    }
+</script>
+
+</body>
+</html>
