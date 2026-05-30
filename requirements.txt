@@ -2,6 +2,12 @@ Flask
 Flask-SQLAlchemy
 PyPDF2
 requests
+werkzeug
+gunicorn
+psycopg2-binary
+scikit-learn
+python-dotenv
+cloudinary
 pytest
 pytest-cov
 werkzeug

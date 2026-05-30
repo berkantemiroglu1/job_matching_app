@@ -1,8 +1,11 @@
+import os
 import requests
 import re
 import PyPDF2
 from models import db, Kullanici, IsIlani, Basvuru
 from werkzeug.security import generate_password_hash, check_password_hash
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 def kullanici_kayit_et(eposta, sifre, kullanici_tipi):
     try:
@@ -131,8 +134,8 @@ def pdf_den_bilgi_cikar(dosya_yolu):
         if eslesme:
             github_kullanici_adi = eslesme.group(1)
             
-    except Exception as e:
-        print(f"PDF Okuma Hatası: {e}")
+    except Exception:
+        pass
         
     return metin.strip(), github_kullanici_adi
 
@@ -154,50 +157,126 @@ def github_bilgilerini_getir(github_kullanici_adi):
     except Exception:
         return None
 
+ESANLAMLI = {
+    "javasc": "javascript",
+    "js": "javascript", 
+    "springboot": "spring boot",
+    "spring-boot": "spring boot",
+    "nodejs": "node js",
+    "node-js": "node js",
+    "postgresql": "postgres",
+    "psql": "postgres",
+    "vscode": "vs code",
+    "vs-code": "vs code",
+    "bilgisayar muhendisi": "bilgisayar muhendisligi",
+    "yazilim muhendisi": "yazilim muhendisligi",
+    "ml": "machine learning",
+    "ai": "yapay zeka",
+    "db": "veritabani",
+    "css3": "css",
+    "html5": "html",
+    "reactjs": "react",
+    "vuejs": "vue",
+    "dotnet": "net",
+    ".net": "net",
+    "mssql": "sql server",
+    "mongo": "mongodb",
+}
+
 def ai_cv_degerlendir(cv_metni, ilan_metni, github_veri=None):
-    url = "http://localhost:11434/api/generate"
-    
-    if github_veri:
+    def metni_temizle(metin):
+        metin = metin.lower()
+        metin = re.sub(r'[^\w\s]', ' ', metin)
+        metin = re.sub(r'\s+', ' ', metin)
+        for yanlis, dogru in ESANLAMLI.items():
+            metin = re.sub(r'\b' + re.escape(yanlis) + r'\b', dogru, metin)
+        return metin.strip()
+
+    cv_temiz = metni_temizle(cv_metni)
+    ilan_temiz = metni_temizle(ilan_metni)
+
+    try:
+        vectorizer = TfidfVectorizer(
+            stop_words=None,
+            ngram_range=(1, 2),
+            min_df=1,
+            analyzer='word'
+        )
+        tfidf_matris = vectorizer.fit_transform([ilan_temiz, cv_temiz])
+        benzerlik_orani = cosine_similarity(tfidf_matris[0:1], tfidf_matris[1:2])[0][0]
+        nlp_puani = int(benzerlik_orani * 100)
+    except Exception:
+        nlp_puani = 0
+
+    ilan_kelimeler = set(ilan_temiz.split())
+    cv_kelimeler = set(cv_temiz.split())
+    eslesme = len(ilan_kelimeler & cv_kelimeler)
+    eslesme_orani = eslesme / len(ilan_kelimeler) if ilan_kelimeler else 0
+    kelime_puani = int(eslesme_orani * 100)
+
+    ilan_kelime_sayisi = len(set(ilan_temiz.split()))
+    if ilan_kelime_sayisi < 30:
+        nlp_puani = int((nlp_puani * 0.1) + (kelime_puani * 0.9))
+    else:
+        nlp_puani = int((nlp_puani * 0.3) + (kelime_puani * 0.7))
+    nlp_puani = min(nlp_puani, 100)
+
+    api_key = os.environ.get("GROQ_API_KEY")
+    ai_ozet = "GitHub profili bulunamadı veya analiz edilemedi."
+    ai_katkisi = 0
+
+    if github_veri and api_key:
         repo_sayisi = github_veri.get("repo_sayisi", 0)
         diller = ", ".join(github_veri.get("diller", []))
-        github_metni = f"\nAdayın GitHub Profili: {repo_sayisi} adet açık kaynak projesi var. Kullanılan diller: {diller}."
-    else:
-        github_metni = "\nAdayın GitHub profili bulunmuyor, sadece CV metni üzerinden değerlendir."
+        
+        prompt = (
+            f"Sen bir İK uzmanısın. Adayın GitHub profilinde {repo_sayisi} repo var "
+            f"ve şu dilleri kullanmış: {diller}. İş ilanı kriterleri: {ilan_metni}. "
+            "Adayın GitHub projelerinin bu ilana uygunluğunu analiz et. "
+            "Cevabını SADECE şu formatta ver:\n"
+            "Skor: [0 ile 30 arası bir sayı]\n"
+            "Özet: [Maksimum 2 cümlelik profesyonel bir analiz]"
+        )
+        
+        try:
+            headers = {
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            }
+            data = {
+                "model": "llama-3.1-8b-instant",
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": 200
+            }
+            cevap = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=data)
+            sonuc_json = cevap.json()
+            
+            if "choices" in sonuc_json:
+                sonuc_metni = sonuc_json["choices"][0]["message"]["content"]
+                puan_eslesme = re.search(r"Skor:\s*(\d+)", sonuc_metni)
+                if puan_eslesme:
+                    ai_katkisi = min(int(puan_eslesme.group(1)), 30)
+                ozet_eslesme = re.search(r"Özet:\s*(.*)", sonuc_metni, re.DOTALL | re.IGNORECASE)
+                if ozet_eslesme:
+                    ai_ozet = ozet_eslesme.group(1).strip()
+            else:
+                ai_ozet = f"API Hatası: {sonuc_json.get('error', 'Bilinmeyen hata')}"
+        except Exception as e:
+            ai_katkisi = 0
+            ai_ozet = "Bağlantı hatası yaşandı."
+    elif not api_key and github_veri:
+        ai_ozet = "Sistemde API anahtarı bulunamadı."
 
-    prompt = (
-        f"İlan Kriterleri: {ilan_metni}\n"
-        f"Adayın CV'si: {cv_metni}"
-        f"{github_metni}\n\n"
-        "Sen ÇOK KATI, acımasız ve gerçekçi bir İK uzmanısın. Adayın ilana uygunluğunu 0 ile 100 arasında puanla.\n"
-        "KESİN KURALLAR:\n"
-        "1. İlanda açıkça istenen teknolojiler (örn: SQL, React, HTML) adayın CV'sinde HİÇ YOKSA, puan kesinlikle 20-40 aralığında olmalıdır.\n"
-        "2. İlanda istenen üniversite bölümü (örn: Bilgisayar Mühendisliği) ile adayın bölümü uyuşmuyorsa puan kır.\n"
-        "3. Adayın sadece başka dilleri bilmesi (örn: Python, C bilip SQL bilmemesi) ilana uygun olduğu anlamına GELMEZ. İstenen kriter yoksa puanı acımasızca düşür.\n\n"
-        "Lütfen cevabını kesinlikle sadece şu formatta ver:\n"
-        "Puan: [0-100 arası sayı]\n"
-        "Özet: [Neden bu kadar düşük veya yüksek puan verdiğine dair sert, net ve gerçekçi bir değerlendirme]"
+    final_puan = int((nlp_puani * 0.85) + ai_katkisi)
+    final_puan = min(final_puan, 100)
+
+    ozet_metni = (
+        f"Kendi NLP Modelimiz ile Metin Benzerlik Skoru (TF-IDF): %{nlp_puani}\n"
+        f"Yapay Zeka GitHub Analiz Skoru: +{ai_katkisi} Puan\n\n"
+        f"Yapay Zeka Kanaat Özeti: {ai_ozet}\n"
     )
-    
-    data = {
-        "model": "llama3",
-        "prompt": prompt,
-        "stream": False
-    }
-    
-    try:
-        cevap = requests.post(url, json=data)
-        sonuc_metni = cevap.json()["response"]
-        
-        puan_eslesme = re.search(r"Puan:\s*(\d+)", sonuc_metni)
-        puan = int(puan_eslesme.group(1)) if puan_eslesme else 0
-        
-        ozet_eslesme = re.search(r"Özet:\s*(.*)", sonuc_metni, re.DOTALL | re.IGNORECASE)
-        ozet = ozet_eslesme.group(1).strip() if ozet_eslesme else sonuc_metni
-        
-        return {"puan": puan, "ozet": ozet}
-        
-    except Exception:
-        return {"puan": 0, "ozet": "Yapay zeka değerlendirmesi sırasında hata oluştu."}
+
+    return {"puan": final_puan, "ozet": ozet_metni}
 
 def basvuru_kaydet(ilan_id, aday_id, cv_dosya_yolu, github_kullanici_adi, puan, geribildirim):
     try:

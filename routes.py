@@ -1,9 +1,17 @@
 import os
+import cloudinary
+import cloudinary.uploader
 from flask import Blueprint, request, jsonify, render_template, send_from_directory
 from werkzeug.utils import secure_filename
 import services
 
 api_bp = Blueprint('api', __name__)
+
+cloudinary.config(
+    cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    api_key=os.environ.get('CLOUDINARY_API_KEY'),
+    api_secret=os.environ.get('CLOUDINARY_API_SECRET')
+)
 
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -41,7 +49,7 @@ def kayit_ol():
     veri = request.get_json()
     sonuc = services.kullanici_kayit_et(veri['eposta'], veri['sifre'], veri['kullanici_tipi'])
     if sonuc['basari']:
-        return jsonify({"basari": True ,"mesaj": sonuc['mesaj']}), 201
+        return jsonify({"basari": True, "mesaj": sonuc['mesaj']}), 201
     return jsonify({"hata": sonuc['hata']}), 400
 
 @api_bp.route('/giris', methods=['POST'])
@@ -50,13 +58,13 @@ def giris_yap():
     sonuc = services.kullanici_dogrula(veri['eposta'], veri['sifre'])
     if sonuc['basari']:
         return jsonify({
-            "basari": True,          
-            "mesaj": "Giris basarili!", 
+            "basari": True,
+            "mesaj": "Giris basarili!",
             "kullanici_tipi": sonuc['kullanici_tipi'],
             "kullanici_id": sonuc['kullanici_id']
         }), 200
     return jsonify({
-        "basari": False, 
+        "basari": False,
         "hata": sonuc['hata']
     }), 401
 
@@ -100,27 +108,37 @@ def basvuru_yap():
     dosya_yolu = os.path.join(UPLOAD_FOLDER, benzersiz_ad)
     dosya.save(dosya_yolu)
 
+    try:
+        cloudinary_sonuc = cloudinary.uploader.upload(
+            dosya_yolu,
+            resource_type="raw",
+            public_id=benzersiz_ad,
+            folder="cv_uploads"
+        )
+        cv_url = cloudinary_sonuc['secure_url']
+    except Exception:
+        cv_url = benzersiz_ad
+
     cv_metni, github_adi = services.pdf_den_bilgi_cikar(dosya_yolu)
     github_veri = services.github_bilgilerini_getir(github_adi)
-    
     ai_sonuc = services.ai_cv_degerlendir(cv_metni, ilan_metni, github_veri)
-    
+
     kayit_sonuc = services.basvuru_kaydet(
-        ilan_id, 
-        aday_id, 
-        benzersiz_ad, 
-        github_adi, 
-        ai_sonuc['puan'], 
+        ilan_id,
+        aday_id,
+        cv_url,
+        github_adi,
+        ai_sonuc['puan'],
         ai_sonuc['ozet']
     )
-    
+
     if kayit_sonuc['basari']:
         return jsonify({
             "mesaj": kayit_sonuc['mesaj'],
             "puan": ai_sonuc['puan'],
             "geribildirim": ai_sonuc['ozet']
         }), 201
-        
+
     return jsonify({"hata": kayit_sonuc['hata']}), 400
 
 @api_bp.route('/isveren-ilanlari/<int:isveren_id>', methods=['GET'])

@@ -86,3 +86,41 @@ def test_isveren_ilan_yonetimi(client):
     
     response_sil = client.post('/ilan-sil', json={"ilan_id": 1, "isveren_id": 1})
     assert response_sil.status_code == 200
+
+def test_gecersiz_giris(client):
+    response = client.post('/giris', json={"eposta": "yok@test.com", "sifre": "123"})
+    assert response.status_code == 401
+
+def test_gecersiz_sifre_yenile(client):
+    response = client.post('/sifre-yenile', json={"eposta": "yok@test.com", "yeni_sifre": "123"})
+    assert response.status_code == 400
+
+def test_ilanlar_kullanici_id_ile(client):
+    client.post('/kayit', json={"eposta": "aday@test.com", "sifre": "123", "kullanici_tipi": "aday"})
+    response = client.get('/ilanlar?kullanici_id=1')
+    assert response.status_code == 200
+
+def test_ilan_sil_yetkisiz(client):
+    client.post('/kayit', json={"eposta": "patron2@test.com", "sifre": "123", "kullanici_tipi": "isveren"})
+    client.post('/ilan-ver', json={
+        "baslik": "Test İlan",
+        "aciklama": "Deneme",
+        "kriterler": "Deneme",
+        "isveren_id": 1
+    })
+    response = client.post('/ilan-sil', json={"ilan_id": 1, "isveren_id": 99})
+    assert response.status_code == 400
+
+def test_basvuru_yap_dosyasiz(client):
+    response = client.post('/basvuru-yap', data={})
+    assert response.status_code == 400
+
+def test_isveren_bos_ilan_listesi(client):
+    client.post('/kayit', json={"eposta": "bos@test.com", "sifre": "123", "kullanici_tipi": "isveren"})
+    response = client.get('/isveren-ilanlari/99')
+    assert response.status_code == 200
+    assert response.get_json() == []
+
+def test_basvuru_sil_yetkisiz(client):
+    response = client.post('/basvuru-sil', json={"basvuru_id": 999, "isveren_id": 1})
+    assert response.status_code == 400

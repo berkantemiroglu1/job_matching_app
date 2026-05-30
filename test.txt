@@ -16,3 +16,5 @@ py -m pytest --cov=. test_app.py
   "aday_id": 1, 
   "cv_metni": "Demo basvurusu."
 }
+
+$env:GROQ_API_KEY="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"
