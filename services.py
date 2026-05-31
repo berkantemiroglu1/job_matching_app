@@ -130,7 +130,7 @@ def pdf_den_bilgi_cikar(dosya_yolu):
                 if sayfa_metni:
                     metin += sayfa_metni + " "
         
-        eslesme = re.search(r"github\.com/([a-zA-Z0-9-]+)", metin)
+        eslesme = re.search(r"github\.com/([a-zA-Z0-9._-]+)", metin)
         if eslesme:
             github_kullanici_adi = eslesme.group(1)
             
