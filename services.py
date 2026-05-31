@@ -237,7 +237,7 @@ def ai_cv_degerlendir(cv_metni, ilan_metni, github_veri=None):
             "Skor: [0 ile 30 arası bir sayı]\n"
             "Özet: [Maksimum 2 cümlelik profesyonel bir analiz]"
         )
-        
+        print(f"DEBUG: Groq isteği atılıyor, repo_sayisi: {repo_sayisi}, diller: {diller}")
         try:
             headers = {
                 "Authorization": f"Bearer {api_key}",
@@ -262,6 +262,7 @@ def ai_cv_degerlendir(cv_metni, ilan_metni, github_veri=None):
             else:
                 ai_ozet = f"API Hatası: {sonuc_json.get('error', 'Bilinmeyen hata')}"
         except Exception as e:
+            print(f"DEBUG: Groq hatası: {e}")
             ai_katkisi = 0
             ai_ozet = "Bağlantı hatası yaşandı."
     elif not api_key and github_veri:
