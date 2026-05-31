@@ -145,7 +145,10 @@ def github_bilgilerini_getir(github_kullanici_adi):
         
     try:
         url = f"https://api.github.com/users/{github_kullanici_adi}/repos"
+        github_token = os.environ.get("GITHUB_TOKEN")
         headers = {"User-Agent": "JobMatchingApp"}
+        if github_token:
+            headers["Authorization"] = f"token {github_token}"
         print(f"DEBUG: GitHub API isteği atılıyor: {url}", flush=True)
         cevap = requests.get(url, headers=headers, timeout=5)
         print(f"DEBUG: GitHub API status: {cevap.status_code}", flush=True)
