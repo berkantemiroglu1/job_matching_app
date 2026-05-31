@@ -155,7 +155,7 @@ def github_bilgilerini_getir(github_kullanici_adi):
             return {"repo_sayisi": repo_sayisi, "diller": diller}
         return None
     except Exception as e:
-        print(f"DEBUG: GitHub API hatası: {e}")
+        print(f"DEBUG: GitHub API hatası: {e}", flush=True)
         return None
 
 ESANLAMLI = {
@@ -238,7 +238,7 @@ def ai_cv_degerlendir(cv_metni, ilan_metni, github_veri=None):
             "Skor: [0 ile 30 arası bir sayı]\n"
             "Özet: [Maksimum 2 cümlelik profesyonel bir analiz]"
         )
-        print(f"DEBUG: Groq isteği atılıyor, repo_sayisi: {repo_sayisi}, diller: {diller}")
+        print(f"DEBUG: Groq isteği atılıyor, repo_sayisi: {repo_sayisi}, diller: {diller}", flush=True)
         try:
             headers = {
                 "Authorization": f"Bearer {api_key}",
@@ -263,7 +263,7 @@ def ai_cv_degerlendir(cv_metni, ilan_metni, github_veri=None):
             else:
                 ai_ozet = f"API Hatası: {sonuc_json.get('error', 'Bilinmeyen hata')}"
         except Exception as e:
-            print(f"DEBUG: Groq hatası: {e}")
+            print(f"DEBUG: Groq hatası: {e}", flush=True)
             ai_katkisi = 0
             ai_ozet = "Bağlantı hatası yaşandı."
     elif not api_key and github_veri:
