@@ -146,7 +146,9 @@ def github_bilgilerini_getir(github_kullanici_adi):
     try:
         url = f"https://api.github.com/users/{github_kullanici_adi}/repos"
         headers = {"User-Agent": "JobMatchingApp"}
+        print(f"DEBUG: GitHub API isteği atılıyor: {url}", flush=True)
         cevap = requests.get(url, headers=headers, timeout=5)
+        print(f"DEBUG: GitHub API status: {cevap.status_code}", flush=True)
         
         if cevap.status_code == 200:
             repolar = cevap.json()
