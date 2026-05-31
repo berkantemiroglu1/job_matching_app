@@ -154,7 +154,8 @@ def github_bilgilerini_getir(github_kullanici_adi):
             diller = list(set([repo.get("language") for repo in repolar if repo.get("language")]))
             return {"repo_sayisi": repo_sayisi, "diller": diller}
         return None
-    except Exception:
+    except Exception as e:
+        print(f"DEBUG: GitHub API hatası: {e}")
         return None
 
 ESANLAMLI = {
