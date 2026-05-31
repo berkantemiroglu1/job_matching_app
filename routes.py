@@ -107,8 +107,7 @@ def basvuru_yap():
     benzersiz_ad = f"aday_{aday_id}_ilan_{ilan_id}_{filename}"
     dosya_yolu = os.path.join(UPLOAD_FOLDER, benzersiz_ad)
     dosya.save(dosya_yolu)
-    print(f"DEBUG: Dosya kaydedildi mi: {os.path.exists(dosya_yolu)}")
-    print(f"DEBUG: Dosya yolu: {dosya_yolu}")
+
 
     try:
         cloudinary_sonuc = cloudinary.uploader.upload(
@@ -122,10 +121,7 @@ def basvuru_yap():
         cv_url = benzersiz_ad
 
     cv_metni, github_adi = services.pdf_den_bilgi_cikar(dosya_yolu)
-    print(f"DEBUG: GitHub adi: {github_adi}")
-    print(f"DEBUG: CV metni ilk 200: {cv_metni[:200]}")
     github_veri = services.github_bilgilerini_getir(github_adi)
-    print(f"DEBUG: github_veri: {github_veri}")
     ai_sonuc = services.ai_cv_degerlendir(cv_metni, ilan_metni, github_veri)
 
     kayit_sonuc = services.basvuru_kaydet(

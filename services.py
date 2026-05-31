@@ -146,7 +146,7 @@ def github_bilgilerini_getir(github_kullanici_adi):
     try:
         url = f"https://api.github.com/users/{github_kullanici_adi}/repos"
         headers = {"User-Agent": "JobMatchingApp"}
-        cevap = requests.get(url, headers=headers)
+        cevap = requests.get(url, headers=headers, timeout=5)
         
         if cevap.status_code == 200:
             repolar = cevap.json()
@@ -248,7 +248,7 @@ def ai_cv_degerlendir(cv_metni, ilan_metni, github_veri=None):
                 "messages": [{"role": "user", "content": prompt}],
                 "max_tokens": 200
             }
-            cevap = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=data)
+            cevap = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=data, timeout=10)
             sonuc_json = cevap.json()
             
             if "choices" in sonuc_json:
