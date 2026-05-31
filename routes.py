@@ -107,8 +107,6 @@ def basvuru_yap():
     benzersiz_ad = f"aday_{aday_id}_ilan_{ilan_id}_{filename}"
     dosya_yolu = os.path.join(UPLOAD_FOLDER, benzersiz_ad)
     dosya.save(dosya_yolu)
-
-    import os
     print(f"DEBUG: Dosya kaydedildi mi: {os.path.exists(dosya_yolu)}")
     print(f"DEBUG: Dosya yolu: {dosya_yolu}")
 
