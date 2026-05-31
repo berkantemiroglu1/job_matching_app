@@ -125,6 +125,7 @@ def basvuru_yap():
     print(f"DEBUG: GitHub adi: {github_adi}")
     print(f"DEBUG: CV metni ilk 200: {cv_metni[:200]}")
     github_veri = services.github_bilgilerini_getir(github_adi)
+    print(f"DEBUG: github_veri: {github_veri}")
     ai_sonuc = services.ai_cv_degerlendir(cv_metni, ilan_metni, github_veri)
 
     kayit_sonuc = services.basvuru_kaydet(
