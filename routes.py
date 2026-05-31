@@ -122,6 +122,8 @@ def basvuru_yap():
         cv_url = benzersiz_ad
 
     cv_metni, github_adi = services.pdf_den_bilgi_cikar(dosya_yolu)
+    print(f"DEBUG: GitHub adi: {github_adi}")
+    print(f"DEBUG: CV metni ilk 200: {cv_metni[:200]}")
     github_veri = services.github_bilgilerini_getir(github_adi)
     ai_sonuc = services.ai_cv_degerlendir(cv_metni, ilan_metni, github_veri)
 
