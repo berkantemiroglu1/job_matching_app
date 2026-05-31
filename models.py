@@ -5,8 +5,8 @@ db = SQLAlchemy()
 
 class Kullanici(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    eposta = db.Column(db.String(120), unique=True, nullable=False)
-    sifre = db.Column(db.String(120), nullable=False)
+    eposta = db.Column(db.String(255), unique=True, nullable=False)
+    ifre = db.Column(db.String(512), nullable=False)
     kullanici_tipi = db.Column(db.String(20), nullable=False) # 'aday' veya 'isveren'
 
 class IsIlani(db.Model):
