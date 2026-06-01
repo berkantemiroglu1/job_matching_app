@@ -169,3 +169,14 @@ def basvuru_sil_route():
     if sonuc['basari']:
         return jsonify({"mesaj": sonuc['mesaj']}), 200
     return jsonify({"hata": sonuc['hata']}), 400
+
+@api_bp.route('/cv-indir/<path:cv_url>')
+def cv_proxy(cv_url):
+    import requests as req
+    try:
+        r = req.get(cv_url, timeout=10)
+        from flask import Response
+        return Response(r.content, mimetype='application/pdf',
+                       headers={'Content-Disposition': 'attachment; filename=cv.pdf'})
+    except:
+        return jsonify({"hata": "CV indirilemedi"}), 400
