@@ -114,7 +114,9 @@ def basvuru_yap():
             dosya_yolu,
             resource_type="raw",
             public_id=benzersiz_ad,
-            folder="cv_uploads"
+            folder="cv_uploads",
+            type="upload",
+            access_mode="public"
         )
         cv_url = cloudinary_sonuc['secure_url']
     except Exception:
