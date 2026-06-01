@@ -175,8 +175,10 @@ def cv_proxy(cv_url):
     import requests as req
     try:
         r = req.get(cv_url, timeout=10)
+        print(f"DEBUG: CV proxy status: {r.status_code}, size: {len(r.content)}", flush=True)
         from flask import Response
         return Response(r.content, mimetype='application/pdf',
                        headers={'Content-Disposition': 'attachment; filename=cv.pdf'})
-    except:
+    except Exception as e:
+        print(f"DEBUG: CV proxy hatası: {e}", flush=True)
         return jsonify({"hata": "CV indirilemedi"}), 400
