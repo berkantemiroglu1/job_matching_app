@@ -1,5 +1,7 @@
 py -m pytest --cov=. test_app.py
 
+http://127.0.0.1:5000/kayit-ekrani
+
 1.KAYIT (POST - http://127.0.0.1:5000/kayit):
 {
   "eposta": "demo@test.com", 
@@ -17,3 +19,4 @@ py -m pytest --cov=. test_app.py
   "cv_metni": "Demo basvurusu."
 }
 
+localtesti öncesi groq api keyi teminale eklemem lazım $env:

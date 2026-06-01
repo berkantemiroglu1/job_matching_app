@@ -118,7 +118,8 @@ def basvuru_yap():
             type="upload",
             access_mode="public"
         )
-        cv_url = cloudinary_sonuc['secure_url']
+        cv_url = benzersiz_ad
+        #cv_url = cloudinary_sonuc['secure_url']
     except Exception:
         cv_url = benzersiz_ad
 
